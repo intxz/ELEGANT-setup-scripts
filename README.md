@@ -44,3 +44,67 @@ wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_do
 chmod +x setup_docker.sh
 ./setup_docker.sh
 ```
+
+## 2. How to Install NVIDIA Drivers + CUDA
+
+This script installs the **NVIDIA proprietary drivers** and the **CUDA toolkit** on Ubuntu, following the [official NVIDIA installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/).
+
+### What does this script do?
+
+- Checks if an NVIDIA GPU is detected in your system (`lspci`).
+- Updates and upgrades the system packages.
+- Installs prerequisites (`build-essential`, `dkms`, `gnupg`, etc.).
+- Adds the official NVIDIA CUDA repository.
+- Installs both:
+  - NVIDIA drivers
+  - CUDA toolkit (latest version available for your Ubuntu release)
+- Prompts for reboot after installation so the drivers can be loaded.
+- After reboot, you can run `nvidia-smi` to confirm that the GPU is working.
+
+### How to run the script
+
+**Option 1: Run directly from GitHub**
+
+```bash
+wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_nvidia.sh | bash
+```
+
+**Option 2: Download, review, and then run (recommended)**
+
+```bash
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_nvidia.sh
+chmod +x setup_nvidia.sh
+./setup_nvidia.sh
+```
+
+### Post-installation
+
+- Reebot the machine:
+
+`sudo reboot`
+
+- Verify that the GPU is detectd and drivers are working
+
+`nvidia-smi`
+
+- You should see something like this:
+
+```bash
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI XXX.XX.XX    Driver Version: XXX.XX.XX    CUDA Version: XX.X     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  NVIDIA GPU      On       | 00000000:00:00.0 Off |                  0   |
+|  0%   00C    P8     XXW / XXXW|     0MiB /  XXXXMiB  |     0%      Default  |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+```

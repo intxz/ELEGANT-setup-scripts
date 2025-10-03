@@ -6,7 +6,7 @@ set -e
 #
 echo ">>> Checking for NVIDIA GPU..."
 if ! lspci  -nn | grep -i 10de; then
-  echo "❌ No NVIDIA GPU detected. Exiting."
+  echo "No NVIDIA GPU detected. Exiting."
   exit 1
 fi
 
@@ -35,5 +35,5 @@ echo ">>> Installing NVIDIA drivers and CUDA..."
 sudo apt-get -y install cuda
 
 echo "############# DOCKER INSTALLATION COMPLETED SUCCESSFULLY #############"
-echo ">>> Reboot required to load NVIDIA drivers."
-echo ">>> Run 'nvidia-smi' after reboot to confirm."
+echo "#############   REBOOT REQUIRED TO LOAD NVIDIA DRIVERS   #############"
+echo "#############  RUN 'nvidia-smi' AFTER REBOOT TO CONFIRM  #############"
