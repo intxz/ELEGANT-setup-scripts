@@ -35,12 +35,12 @@ This script installs Docker Engine on Ubuntu following the [official Docker docu
 
 **Option 1: Run directly from GitHub**
 
-`wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_docker.sh | bash`
+`wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_docker.sh | bash`
 
 **Option 2: Download, review, and then run (recommended)**
 
 ```bash
-wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_docker.sh
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_docker.sh
 chmod +x setup_docker.sh
 ./setup_docker.sh
 ```
@@ -66,13 +66,13 @@ This script installs the **NVIDIA proprietary drivers** and the **CUDA toolkit**
 **Option 1: Run directly from GitHub**
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_nvidia.sh | bash
+wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_nvidia.sh | bash
 ```
 
 **Option 2: Download, review, and then run (recommended)**
 
 ```bash
-wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_nvidia.sh
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_nvidia.sh
 chmod +x setup_nvidia.sh
 ./setup_nvidia.sh
 ```
