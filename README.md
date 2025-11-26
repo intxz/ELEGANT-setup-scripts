@@ -35,7 +35,7 @@ This script installs Docker Engine on Ubuntu following the [official Docker docu
 
 **Option 1: Run directly from GitHub**
 
-`wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_docker.sh | bash`
+```wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_docker.sh | bash```
 
 **Option 2: Download, review, and then run (recommended)**
 
