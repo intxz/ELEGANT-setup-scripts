@@ -108,3 +108,104 @@ chmod +x setup_nvidia.sh
 |  No running processes found                                                 |
 +-----------------------------------------------------------------------------+
 ```
+
+## How to Install OWAMP (perfSONAR)
+
+This script installs the One-Way Active Measurement Protocol (OWAMP) tools on Ubuntu. Unlike standard tools like Ping or iperf (which measure Round-Trip Time), OWAMP measures precise One-Way Delay, making it essential for detecting network asymmetry and routing issues. It uses the official [perfSONAR repositories](https://docs.perfsonar.net/).
+
+### What does this script do?
+
+- Installs curl (required for fetching keys).
+
+- Adds the official perfSONAR repository list to your system (since these packages are not in the default Ubuntu repos).
+
+- Securely imports the perfSONAR GPG signing key.
+
+- Updates package lists and installs:
+
+  - owamp-server (The daemon that listens for tests)
+
+  - owamp-client (The owping command-line tool)
+
+- Verifies that the owamp-server service is active and running.
+
+### How to run the script 
+
+**Option 1: Run directly from GitHub**
+
+```bash
+wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_owamp.sh | bash
+```
+
+**Option 2: Download, review, and then run (recommended)**
+
+```bash
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/main/setup_owamp.sh
+chmod +x setup_owamp.sh
+./setup_owamp.sh
+```
+### Pos-Instalation (Important)
+
+By default, the OWAMP server denies all connections for security. To allow testing, you must configure the Access Control Lists (ACLs).
+
+1. Edit the limits file:
+
+```bash
+sudo nano /etc/owamp-server/owamp-server.limits
+```
+
+2. Add the following configuration to allow "Open Mode" testing (allows anyone to test against your server):
+
+```bash
+limit root with
+  allow_open_mode on
+  bandwidth 0
+  disk 0
+  delete_on_fetch on
+
+assign default root
+```
+
+3. Restart the service to apply changes:
+
+```bash
+sudo systemctl restart owamp-server
+```
+
+4. Verify the installation by running a test against yourself (loopback):
+```bash
+owping 127.0.0.1
+```
+
+### How to run
+
+1. **On the Server (Receiver)** The server runs as a background daemon. You don't need to run a command for every test, just ensure the service is active and ports are open (TCP 861 and UDP range 8760-9960).
+
+```bash
+sudo systemctl status owamp-server
+```
+
+2. **On the Client (Sender)** Use owping to send packets. Example: Send 100 packets (`-c 100`) with a 0.1s interval (`-i 0.1`) to the server IP.
+
+```bash
+owping -c 100 -i 0.1 <SERVER_IP_ADDRESS>
+```
+
+3. **Expected Output** You should see statistics separated for the Sender (Client -> Server) and Receiver (Server -> Client). This allows you to detect if one direction is slower than the other.
+
+```bash
+--- owping statistics ---
+Sid:    c0a8016f4d5e12345678901234567890
+Server: [192.168.1.50]:861
+Client: [192.168.1.14]:44832
+--
+One-way delay stats (Sender): #UPlink
+  Pkts: 100  Lost: 0 (0.00%)
+  Min/Median/Max: 0.143 / 0.150 / 0.210 ms
+  Error Estimate: 0.025 ms
+
+One-way delay stats (Receiver): #DOWNlink
+  Pkts: 100  Lost: 0 (0.00%)
+  Min/Median/Max: 0.138 / 0.142 / 0.198 ms
+  Error Estimate: 0.030 ms
+```
