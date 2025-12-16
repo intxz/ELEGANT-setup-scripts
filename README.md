@@ -159,12 +159,7 @@ sudo nano /etc/owamp-server/owamp-server.limits
 2. Add the following configuration to allow "Open Mode" testing (allows anyone to test against your server):
 
 ```bash
-limit root with
-  allow_open_mode on
-  bandwidth 0
-  disk 0
-  delete_on_fetch on
-
+limit root with allow_open_mode on bandwidth 0 disk 0 delete_on_fetch on
 assign default root
 ```
 
