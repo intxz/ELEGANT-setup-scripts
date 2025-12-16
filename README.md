@@ -136,13 +136,13 @@ This script installs the One-Way Active Measurement Protocol (OWAMP) tools on Ub
 **Option 1: Run directly from GitHub**
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_owamp.sh | bash
+wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_owampd.sh | bash
 ```
 
 **Option 2: Download, review, and then run (recommended)**
 
 ```bash
-wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_owamp.sh
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_owampd.sh
 chmod +x setup_owamp.sh
 ./setup_owamp.sh
 ```
