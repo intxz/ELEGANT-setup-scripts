@@ -206,3 +206,141 @@ One-way delay stats (Receiver): #DOWNlink
   Min/Median/Max: 0.138 / 0.142 / 0.198 ms
   Error Estimate: 0.030 ms
 ```
+---
+
+## 4. LiteLLM Gateway (Ollama API Proxy)
+
+Este script configura un **API Gateway** usando LiteLLM para exponer tu modelo Ollama (Qwen) como una API compatible con OpenAI, multi-usuario con autenticación JWT, rate limits y dashboard de uso.
+
+### Casos de uso
+
+- exponer Ollama local (Qwen u otros modelos) como API REST OpenAI-compatible
+- Crear API keys para múltiples usuarios (premium/trial)
+- Rate limiting por usuario (TPM/RPM)
+- Dashboard web para gestión y monitoreo
+- Conectar AI coding agents: **OpenCode**, **OpenClaw**, **Claude Code**, **Continue.dev**, etc.
+
+### Requisitos
+
+- Docker y Docker Compose instalados
+- Ollama corriendo con al menos un modelo Qwen
+- Acceso a la VM vía VPN (puerto 4000)
+
+### Modelos disponibles tras instalación
+
+| Modelo | Tier | Límites |
+|--------|------|---------|
+| `qwen-premium` | Premium | 500 RPM, 10k TPM |
+| `qwen-trial` | Trial | 50 RPM, 1k TPM |
+
+### Cómo ejecutar el script
+
+**Opción 1: Ejecutar directamente desde GitHub**
+
+```bash
+wget -qO- https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_litellm.sh | bash
+```
+
+**Opción 2: Descargar, revisar, y luego ejecutar (recomendado)**
+
+```bash
+wget https://raw.githubusercontent.com/intxz/ELEGANT-setup-scripts/master/setup_litellm.sh
+chmod +x setup_litellm.sh
+./setup_litellm.sh
+```
+
+### Qué hace el script
+
+1. **Verifica** Docker y Ollama
+2. **Crea** el directorio `~/litellm-gateway` con:
+   - `docker-compose.yml` (LiteLLM + PostgreSQL)
+   - `config.yaml` (modelos, rate limits, auth)
+3. **Genera** master key para administración
+4. **Inicia** los servicios en Docker
+5. **Crea** usuarios:
+   - **premium**: Ilimitado, alta prioridad (tú)
+   - **trial**: Budget $10/mes, baja prioridad
+6. **Genera** API keys para cada usuario
+7. **Muestra** resumen con todas las claves
+
+### Después de ejecutar
+
+El script mostrará las API keys. **Guarda estos archivos**:
+
+```
+~/litellm-gateway/.master_key    # Clave maestra admin
+~/litellm-gateway/.api_keys      # API keys de usuarios
+```
+
+### Endpoints disponibles
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `http://TU_VM:4000/v1/chat/completions` | API OpenAI-compatible |
+| `http://TU_VM:4000/ui` | Dashboard web |
+| `http://TU_VM:4000/docs` | Swagger API docs |
+
+### Cómo usar las API keys
+
+**OpenCode** (config en `~/.config/opencode/opencode.json`):
+
+```json
+{
+  "provider": {
+    "ollama-gateway": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Qwen via LiteLLM",
+      "options": {
+        "baseURL": "http://172.16.67.208:4000/v1"
+      },
+      "models": {
+        "qwen-premium": {
+          "name": "Qwen 3.6 Premium"
+        }
+      }
+    }
+  }
+}
+```
+
+**OpenAI SDK (cualquier cliente)**:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-xxxx-your-trial-key-xxxx",
+    base_url="http://172.16.67.208:4000/v1"
+)
+
+response = client.chat.completions.create(
+    model="qwen-trial",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### Ver estado de los servicios
+
+```bash
+cd ~/litellm-gateway
+docker compose ps
+docker compose logs -f
+```
+
+### Comandos útiles de administración
+
+```bash
+# Ver usuarios
+curl http://localhost:4000/user/info?user_id=premium \
+  -H "Authorization: Bearer $MASTER_KEY"
+
+# Ver gasto
+curl http://localhost:4000/key/info?key=$API_KEY \
+  -H "Authorization: Bearer $MASTER_KEY"
+
+# Crear nuevo usuario
+curl -X POST http://localhost:4000/user/new \
+  -H "Authorization: Bearer $MASTER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "nuevo", "max_budget": 20, "tpm_limit": 2000}'
+```
