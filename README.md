@@ -210,13 +210,21 @@ One-way delay stats (Receiver): #DOWNlink
 
 ## 4. LiteLLM Gateway (Ollama API Proxy)
 
-Este script configura un **API Gateway** usando LiteLLM para exponer tu modelo Ollama (Qwen) como una API compatible con OpenAI, multi-usuario con autenticación JWT, rate limits y dashboard de uso.
+Este script configura un **API Gateway** usando LiteLLM para exponer tu modelo Ollama (Qwen) como una API compatible con OpenAI, multi-usuario con prioridad.
+
+### Sistema de prioridades
+
+| Usuario | Prioridad | Descripción |
+|---------|-----------|-------------|
+| **premium** | 1 (más alta) | Tú - acceso inmediato cuando lo necesites |
+| **trial** | 3 (baja) | Otros - acceso cuando premium no usa |
+
+**Sin límites de tokens** - todos pueden usar los que necesiten. La prioridad solo afecta cuando hay congestión: tus requests van primero.
 
 ### Casos de uso
 
-- exponer Ollama local (Qwen u otros modelos) como API REST OpenAI-compatible
-- Crear API keys para múltiples usuarios (premium/trial)
-- Rate limiting por usuario (TPM/RPM)
+- Exponer Ollama local (Qwen) como API OpenAI-compatible
+- Multi-usuario con diferenciación por prioridad
 - Dashboard web para gestión y monitoreo
 - Conectar AI coding agents: **OpenCode**, **OpenClaw**, **Claude Code**, **Continue.dev**, etc.
 
@@ -226,12 +234,11 @@ Este script configura un **API Gateway** usando LiteLLM para exponer tu modelo O
 - Ollama corriendo con al menos un modelo Qwen
 - Acceso a la VM vía VPN (puerto 4000)
 
-### Modelos disponibles tras instalación
+### Modelo disponible
 
-| Modelo | Tier | Límites |
-|--------|------|---------|
-| `qwen-premium` | Premium | 500 RPM, 10k TPM |
-| `qwen-trial` | Trial | 50 RPM, 1k TPM |
+| Modelo | Descripción |
+|--------|-------------|
+| `qwen-35b` | Qwen 3.6 35B - accesible por todos los usuarios |
 
 ### Cómo ejecutar el script
 
@@ -254,12 +261,12 @@ chmod +x setup_litellm.sh
 1. **Verifica** Docker y Ollama
 2. **Crea** el directorio `~/litellm-gateway` con:
    - `docker-compose.yml` (LiteLLM + PostgreSQL)
-   - `config.yaml` (modelos, rate limits, auth)
+   - `config.yaml` (modelo único, sin límites de tokens)
 3. **Genera** master key para administración
 4. **Inicia** los servicios en Docker
-5. **Crea** usuarios:
-   - **premium**: Ilimitado, alta prioridad (tú)
-   - **trial**: Budget $10/mes, baja prioridad
+5. **Crea** usuarios con niveles de prioridad:
+   - **premium** (prioridad 1): Tú
+   - **trial** (prioridad 3): Otros
 6. **Genera** API keys para cada usuario
 7. **Muestra** resumen con todas las claves
 
@@ -294,8 +301,8 @@ El script mostrará las API keys. **Guarda estos archivos**:
         "baseURL": "http://172.16.67.208:4000/v1"
       },
       "models": {
-        "qwen-premium": {
-          "name": "Qwen 3.6 Premium"
+        "qwen-35b": {
+          "name": "Qwen 3.6 35B"
         }
       }
     }
@@ -309,12 +316,12 @@ El script mostrará las API keys. **Guarda estos archivos**:
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-xxxx-your-trial-key-xxxx",
+    api_key="sk-xxxx-your-premium-key-xxxx",
     base_url="http://172.16.67.208:4000/v1"
 )
 
 response = client.chat.completions.create(
-    model="qwen-trial",
+    model="qwen-35b",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
@@ -330,17 +337,34 @@ docker compose logs -f
 ### Comandos útiles de administración
 
 ```bash
+# Obtener master key
+source ~/litellm-gateway/.master_key
+
 # Ver usuarios
 curl http://localhost:4000/user/info?user_id=premium \
   -H "Authorization: Bearer $MASTER_KEY"
 
-# Ver gasto
+# Ver API keys
 curl http://localhost:4000/key/info?key=$API_KEY \
   -H "Authorization: Bearer $MASTER_KEY"
 
-# Crear nuevo usuario
+# Crear nuevo usuario con prioridad
 curl -X POST http://localhost:4000/user/new \
   -H "Authorization: Bearer $MASTER_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"user_id": "nuevo", "max_budget": 20, "tpm_limit": 2000}'
+  -d '{"user_id": "nombre", "max_budget": 999999, "metadata": {"priority": 2}}'
+
+# Generar API key para nuevo usuario
+curl -X POST http://localhost:4000/key/generate \
+  -H "Authorization: Bearer $MASTER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "nombre", "models": ["qwen-35b"]}'
 ```
+
+### Niveles de prioridad
+
+| Valor | Nivel |
+|-------|-------|
+| 1 | Más alto - premium |
+| 2 | Medio |
+| 3 | Bajo - trial |
